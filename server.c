@@ -14,10 +14,26 @@ void DieWithError(char *errorMessage){
 void commun(int sock){
     char buf[BUF_SIZE];                                                                 /* エコー文字列用のバッファ */
     int len_r;                                                                          /* 受信文字数 */
-
-    if((len_r=recv(sock,buf,BUF_SIZE,0))<=0)                                            /* 受信データをバッファに格納 */
-        DieWithError("recv()failed");                                                   /* 受信時エラー(文字量違反) */
+    char response[BUF_SIZE];
     
+        while((len_r = recv(sock, buf, BUF_SIZE, 0)) > 0)
+        buf[len_r] = '\0'
+        
+        printf("%s\n", buf);
+
+        if (strstr(buf, "\r\n\r\n")) {
+            break;
+
+        }
+
+    if(len_r <= 0)                                           /* 受信データをバッファに格納 */
+        DieWithError("received()failed");                                                   /* 受信時エラー(文字量違反) */
+    printf("received HTTP request.\n");
+
+    if((len_r = recv(sock, buf, BUF_SIZE, 0))<= 0)
+        DieWithError("recv()failed")
+
+
     buf[len_r] = '\0';                                                                  /* 文末EOSの追加 */
     printf("%s\n",buf);                                                                 /* 受信データを出力 */
     if((send(sock,buf,strlen(buf),0))!=strlen(buf))                                     /* クライアントに受け取ったデータを返却 */
