@@ -12,23 +12,51 @@ void DieWithError(char *errorMessage){
 }
 
 void commun(int sock){
-    char buf[BUF_SIZE];                                                                 /* エコー文字列用のバッファ */
+    char buf[BUF_SIZE]; 
+    char buf_old[BUF_SIZE];                                                                /* エコー文字列用のバッファ */
+    char buf2[2*BUF_SIZE];
     int len_r;                                                                          /* 受信文字数 */
     char response[BUF_SIZE];
+    buf_old[0] = '\0';
     
-        while((len_r = recv(sock, buf, BUF_SIZE, 0)) > 0)
-        buf[len_r] = '\0'
+        while((len_r = recv(sock, buf, BUF_SIZE, 0)) > 0)｛
+        buf[len_r] = '\0';
         
-        printf("%s\n", buf);
+        sprintf(buf2,"%s%s", buf_old,buf);
 
         if (strstr(buf, "\r\n\r\n")) {
             break;
 
         }
 
-    if(len_r <= 0)                                           /* 受信データをバッファに格納 */
-        DieWithError("received()failed");                                                   /* 受信時エラー(文字量違反) */
+        sprintf(buf_old, "%s",buf);
+} 
+
+    
     printf("received HTTP request.\n");
+    sprintf(response, "HTTP/1.1 200 OK\r\n");
+    if(send(sock, response, strlen(response), 0) != strlen(response))
+        DieWithError("send() sent a message of unexpected bytes");
+    
+    sprintf(response, "Content-Type: text/html; charset=utf-8\r\n");
+    if(send(sock, response, strlen(response), 0) != strlen(response))
+        DieWithError("send() sent a message of unexpected bytes");
+        
+    sprintf(response, "\r\n");
+    if(send(sock, response, strlen(response), 0) != strlen(response))
+        DieWithError("send() sent a message of unexpected bytes");
+    
+    sprintf(response, "<!DOCTYPE html><html><head><title>");
+    if(send(sock, response, strlen(response), 0) != strlen(response))
+        DieWithError("send() sent a message of unexpected bytes");
+    
+    sprintf(response, "ネットワークプログラミングのwebサイト");
+    if(send(sock, response, strlen(response), 0) != strlen(response))
+        DieWithError("send() sent a message of unexpected bytes");
+    
+    sprintf(response, "</title></head><body>ネットワークダイスキ</body></html>");
+    if(send(sock, response, strlen(response), 0) != strlen(response))
+        DieWithError("send() sent a message of unexpected bytes");
 
     if((len_r = recv(sock, buf, BUF_SIZE, 0))<= 0)
         DieWithError("recv()failed")
@@ -54,7 +82,7 @@ int main(int argc, char **argv) {
     listen(servSock,5);                                                                 /* 順番待ち(第二引数が順番待ちしても良いクライアント数) */
     while(1){
         szClientAddr = sizeof(clientAddress);                                           /* 受信データの形式のメモリサイズを取得 */
-        cliSock = accept(servSock,(struct sockaddr*)&clientAddress,&szClientAddr);      /*  */
+        cliSock = accept(servSock,(struct sockaddr*)&clientAddress,(socklen_t)&szClientAddr);      /*  */
         commun(cliSock);                                                                /* ユーザー定義 */
     }
     close(servSock);                                                                    /* serverをクローズする */
